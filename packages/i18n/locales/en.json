@@ -1,0 +1,246 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "loading": "Loading...",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgot_password": "Forgot Password",
+    "2fa_code": "Authentication Code",
+    "2fa_required": "Two-factor authentication required"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "workers": "Workers",
+    "companies": "Companies",
+    "support_plans": "Support Plans",
+    "interviews": "Interviews",
+    "consultations": "Consultations",
+    "documents": "Documents",
+    "tasks": "Tasks",
+    "reports": "Reports",
+    "settings": "Settings",
+    "audit_logs": "Audit Logs"
+  },
+  "worker": {
+    "title": "Worker Information",
+    "list": "Worker List",
+    "detail": "Details",
+    "basic_info": "Basic Information",
+    "contact": "Contact",
+    "residence": "Residence Information",
+    "employment": "Employment",
+    "name": "Name",
+    "name_kana": "Name (Kana)",
+    "name_native": "Name (Native)",
+    "date_of_birth": "Date of Birth",
+    "gender": "Gender",
+    "nationality": "Nationality",
+    "native_language": "Native Language",
+    "japanese_level": "Japanese Level",
+    "residence_card_number": "Residence Card Number",
+    "residence_status": "Residence Status",
+    "residence_period": "Residence Period",
+    "residence_expiry": "Residence Expiry",
+    "company": "Company",
+    "office": "Office",
+    "site": "Site",
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "suspended": "Suspended",
+      "terminated": "Terminated"
+    }
+  },
+  "company": {
+    "title": "Company",
+    "list": "Company List",
+    "detail": "Company Details",
+    "name": "Company Name",
+    "corporate_number": "Corporate Number",
+    "industry": "Industry",
+    "headquarters": "Headquarters",
+    "offices": "Offices",
+    "sites": "Sites",
+    "contacts": "Contacts",
+    "contract_period": "Contract Period"
+  },
+  "support_plan": {
+    "title": "Support Plan",
+    "list": "Support Plan List",
+    "template": "Template",
+    "items": "Support Items",
+    "tasks": "Tasks",
+    "item_1": "Pre-entry Guidance",
+    "item_2": "Airport Pickup/Dropoff",
+    "item_3": "Housing and Necessities",
+    "item_4": "Life Orientation",
+    "item_5": "Assistance with Official Procedures",
+    "item_6": "Japanese Language Learning",
+    "item_7": "Consultation and Complaint Handling",
+    "item_8": "Japanese Community Integration",
+    "item_9": "Job Change Support",
+    "item_10": "Regular Interviews",
+    "status": {
+      "draft": "Draft",
+      "pending_approval": "Pending Approval",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "interview": {
+    "title": "Regular Interview",
+    "list": "Interview List",
+    "schedule": "Schedule",
+    "record": "Record",
+    "scheduled_date": "Scheduled Date",
+    "location": "Location",
+    "interviewer": "Interviewer",
+    "interpreter": "Interpreter",
+    "duration": "Duration",
+    "summary": "Summary",
+    "topics": "Topics",
+    "issues": "Issues",
+    "follow_up": "Follow-up",
+    "status": {
+      "scheduled": "Scheduled",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "no_show": "No Show",
+      "rescheduled": "Rescheduled"
+    }
+  },
+  "consultation": {
+    "title": "Consultation",
+    "list": "Consultation List",
+    "new": "New Consultation",
+    "subject": "Subject",
+    "description": "Description",
+    "category": "Category",
+    "priority": "Priority",
+    "language": "Language",
+    "interpreter": "Interpreter",
+    "response": "Response",
+    "resolution": "Resolution",
+    "categories": {
+      "work_conditions": "Work Conditions",
+      "harassment": "Harassment",
+      "wage": "Wage",
+      "living": "Living",
+      "health": "Health",
+      "visa": "Visa/Residence",
+      "family": "Family",
+      "other": "Other"
+    },
+    "status": {
+      "received": "Received",
+      "in_progress": "In Progress",
+      "pending_response": "Pending Response",
+      "resolved": "Resolved",
+      "closed": "Closed",
+      "escalated": "Escalated"
+    }
+  },
+  "document": {
+    "title": "Documents",
+    "list": "Document List",
+    "templates": "Templates",
+    "generate": "Generate",
+    "version": "Version",
+    "validation": "Validation",
+    "approval": "Approval",
+    "status": {
+      "draft": "Draft",
+      "pending_review": "Pending Review",
+      "pending_approval": "Pending Approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "submitted": "Submitted",
+      "returned": "Returned"
+    }
+  },
+  "task": {
+    "title": "Tasks",
+    "list": "Task List",
+    "assignee": "Assignee",
+    "due_date": "Due Date",
+    "priority": "Priority",
+    "status": {
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "overdue": "Overdue"
+    },
+    "priority_levels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    }
+  },
+  "alert": {
+    "title": "Alerts",
+    "residence_expiry": "Residence Expiry Alert",
+    "contract_expiry": "Contract Expiry Alert",
+    "interview_due": "Interview Due Alert",
+    "document_due": "Document Due Alert"
+  },
+  "error": {
+    "auth": {
+      "invalid_credentials": "Invalid email or password",
+      "token_expired": "Session has expired",
+      "token_invalid": "Invalid session",
+      "2fa_required": "Two-factor authentication required",
+      "2fa_invalid": "Invalid authentication code",
+      "permission_denied": "You do not have permission to perform this action",
+      "resource_forbidden": "Access to this resource is forbidden"
+    },
+    "validation": {
+      "failed": "Validation failed",
+      "required_field": "This field is required",
+      "invalid_format": "Invalid format",
+      "out_of_range": "Value is out of range"
+    },
+    "resource": {
+      "not_found": "Resource not found",
+      "already_exists": "Already exists",
+      "conflict": "Conflict occurred",
+      "locked": "Resource is locked"
+    },
+    "business": {
+      "invalid_state": "Invalid state for this operation",
+      "approval_required": "Approval required",
+      "deadline_passed": "Deadline has passed",
+      "quota_exceeded": "Quota exceeded"
+    },
+    "system": {
+      "internal_error": "Internal system error",
+      "service_unavailable": "Service temporarily unavailable",
+      "database_error": "Database error",
+      "external_service_error": "External service error"
+    }
+  }
+}

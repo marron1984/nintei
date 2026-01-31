@@ -1,0 +1,686 @@
+// Prisma schema for 登録支援機関DX
+// 多点・他国間・多言語プラットフォーム
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== テナント管理 ====================
+
+model Tenant {
+  id                 String   @id @default(cuid())
+  name               String
+  registrationNumber String   @unique // 登録番号
+  status             String   @default("active") // active, suspended, pending
+  timezone           String   @default("Asia/Tokyo")
+  defaultLanguage    String   @default("ja")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  branches      Branch[]
+  users         User[]
+  companies     Company[]
+  workers       Worker[]
+  supportPlans  SupportPlan[]
+  interviews    Interview[]
+  consultations Consultation[]
+  documents     Document[]
+  templates     DocumentTemplate[]
+  auditLogs     AuditLog[]
+
+  @@map("tenants")
+}
+
+model Branch {
+  id             String   @id @default(cuid())
+  tenantId       String
+  name           String
+  code           String
+  postalCode     String?
+  prefecture     String?
+  city           String?
+  street         String?
+  building       String?
+  country        String   @default("JP")
+  timezone       String   @default("Asia/Tokyo")
+  isHeadquarters Boolean  @default(false)
+  status         String   @default("active") // active, inactive
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teams  Team[]
+  users  User[]
+
+  @@unique([tenantId, code])
+  @@map("branches")
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  branchId  String
+  name      String
+  code      String
+  status    String   @default("active") // active, inactive
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  users  User[]
+
+  @@unique([branchId, code])
+  @@map("teams")
+}
+
+// ==================== ユーザー管理 ====================
+
+model User {
+  id                String    @id @default(cuid())
+  tenantId          String
+  branchId          String?
+  teamId            String?
+  companyId         String?   // 受入企業/士業ユーザー用
+  email             String    @unique
+  passwordHash      String
+  name              String
+  nameKana          String?
+  role              String    // UserRole type
+  status            String    @default("active") // active, inactive, pending
+  preferredLanguage String    @default("ja")
+  timezone          String    @default("Asia/Tokyo")
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  lastLoginAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch  Branch?  @relation(fields: [branchId], references: [id])
+  team    Team?    @relation(fields: [teamId], references: [id])
+  company Company? @relation(fields: [companyId], references: [id])
+
+  // Relations
+  assignedTasks          SupportTask[]           @relation("TaskAssignee")
+  createdTasks           SupportTask[]           @relation("TaskCreator")
+  conductedInterviews    Interview[]             @relation("Interviewer")
+  interpretedInterviews  Interview[]             @relation("Interpreter")
+  receivedConsultations  Consultation[]          @relation("ConsultationReceiver")
+  assignedConsultations  Consultation[]          @relation("ConsultationAssignee")
+  consultationResponses  ConsultationResponse[]
+  createdDocuments       Document[]              @relation("DocumentCreator")
+  approvedDocuments      Document[]              @relation("DocumentApprover")
+  createdSupportPlans    SupportPlan[]           @relation("SupportPlanCreator")
+  approvedSupportPlans   SupportPlan[]           @relation("SupportPlanApprover")
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+// ==================== 受入企業管理 ====================
+
+model Company {
+  id               String    @id @default(cuid())
+  tenantId         String
+  name             String
+  nameKana         String?
+  corporateNumber  String?   // 法人番号
+  industry         String
+  status           String    @default("active") // active, inactive, pending
+  contractStartDate DateTime
+  contractEndDate  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  offices CompanyOffice[]
+  workers Worker[]
+  users   User[]
+  consultations Consultation[]
+
+  @@index([tenantId])
+  @@map("companies")
+}
+
+model CompanyOffice {
+  id             String   @id @default(cuid())
+  companyId      String
+  name           String
+  postalCode     String?
+  prefecture     String?
+  city           String?
+  street         String?
+  building       String?
+  country        String   @default("JP")
+  phone          String?
+  fax            String?
+  isHeadquarters Boolean  @default(false)
+  status         String   @default("active") // active, inactive
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  company  Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sites    CompanySite[]
+  workers  Worker[]
+  contacts CompanyContact[]
+
+  @@map("company_offices")
+}
+
+model CompanySite {
+  id         String   @id @default(cuid())
+  officeId   String
+  name       String
+  postalCode String?
+  prefecture String?
+  city       String?
+  street     String?
+  building   String?
+  country    String   @default("JP")
+  status     String   @default("active") // active, inactive
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  office  CompanyOffice @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  workers Worker[]
+
+  @@map("company_sites")
+}
+
+model CompanyContact {
+  id            String   @id @default(cuid())
+  officeId      String
+  name          String
+  nameKana      String?
+  position      String?
+  email         String?
+  phone         String?
+  isMainContact Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  office CompanyOffice @relation(fields: [officeId], references: [id], onDelete: Cascade)
+
+  @@map("company_contacts")
+}
+
+// ==================== 外国人（支援対象者）管理 ====================
+
+model Worker {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  companyId          String
+  officeId           String?
+  siteId             String?
+  // 基本情報
+  firstName          String
+  lastName           String
+  firstNameKana      String?
+  lastNameKana       String?
+  firstNameNative    String?  // 母語表記
+  lastNameNative     String?
+  dateOfBirth        DateTime
+  gender             String   // male, female, other
+  nationality        String
+  // 連絡先
+  email              String?
+  phone              String
+  postalCode         String?
+  prefecture         String?
+  city               String?
+  street             String?
+  building           String?
+  country            String   @default("JP")
+  // 緊急連絡先
+  emergencyName      String?
+  emergencyRelation  String?
+  emergencyPhone     String?
+  // 言語
+  nativeLanguage     String
+  understandsLanguages String[] // JSONではなく配列
+  japaneseLevel      String?  // N1-N5, none
+  // 在留関連
+  residenceCardNumber String
+  residenceStatus    String   // 在留資格
+  residencePeriod    String   // 在留期間
+  residenceExpiry    DateTime // 在留期限
+  residenceIssueDate DateTime
+  // 雇用関連
+  contractStartDate  DateTime
+  contractEndDate    DateTime?
+  jobCategory        String   // 業種
+  occupation         String   // 職種
+  salary             Int
+  salaryType         String   // monthly, hourly
+  workingHoursPerWeek Float
+  // ステータス
+  status             String   @default("active") // active, completed, suspended, terminated
+  supportStartDate   DateTime
+  supportEndDate     DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  company  Company        @relation(fields: [companyId], references: [id])
+  office   CompanyOffice? @relation(fields: [officeId], references: [id])
+  site     CompanySite?   @relation(fields: [siteId], references: [id])
+
+  supportPlans   SupportPlan[]
+  supportTasks   SupportTask[]
+  interviews     Interview[]
+  consultations  Consultation[]
+  documents      Document[]
+  alerts         WorkerAlert[]
+
+  @@index([tenantId])
+  @@index([companyId])
+  @@index([residenceExpiry])
+  @@map("workers")
+}
+
+model WorkerAlert {
+  id        String   @id @default(cuid())
+  workerId  String
+  type      String   // residence_expiry, contract_expiry, interview_due, document_due, custom
+  message   String
+  dueDate   DateTime
+  status    String   @default("pending") // pending, acknowledged, resolved
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  worker Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([dueDate])
+  @@map("worker_alerts")
+}
+
+// ==================== 支援計画 ====================
+
+model SupportPlanTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  isDefault   Boolean  @default(false)
+  status      String   @default("draft") // draft, active, archived
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items  SupportPlanItemTemplate[]
+  plans  SupportPlan[]
+
+  @@map("support_plan_templates")
+}
+
+model SupportPlanItemTemplate {
+  id                      String   @id @default(cuid())
+  templateId              String
+  itemNumber              Int      // 1-10
+  category                String   // SupportCategory
+  title                   String
+  titleTranslations       Json     // { "en": "...", "vi": "..." }
+  description             String
+  descriptionTranslations Json
+  defaultMethod           String?
+  requiredDocuments       String[]
+  requiresConsent         Boolean  @default(false)
+  frequency               String?  // once, monthly, quarterly, yearly, as_needed
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  template SupportPlanTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, itemNumber])
+  @@map("support_plan_item_templates")
+}
+
+model SupportPlan {
+  id          String    @id @default(cuid())
+  tenantId    String
+  workerId    String
+  templateId  String?
+  status      String    @default("draft") // draft, pending_approval, active, completed, cancelled
+  startDate   DateTime
+  endDate     DateTime?
+  createdBy   String
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant   Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  worker   Worker               @relation(fields: [workerId], references: [id])
+  template SupportPlanTemplate? @relation(fields: [templateId], references: [id])
+  creator  User                 @relation("SupportPlanCreator", fields: [createdBy], references: [id])
+  approver User?                @relation("SupportPlanApprover", fields: [approvedBy], references: [id])
+  items    SupportPlanItem[]
+
+  @@index([tenantId])
+  @@index([workerId])
+  @@map("support_plans")
+}
+
+model SupportPlanItem {
+  id          String   @id @default(cuid())
+  planId      String
+  itemNumber  Int
+  category    String
+  title       String
+  description String
+  method      String?
+  customNotes String?
+  status      String   @default("pending") // pending, in_progress, completed, skipped
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  plan  SupportPlan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  tasks SupportTask[]
+
+  @@unique([planId, itemNumber])
+  @@map("support_plan_items")
+}
+
+model SupportTask {
+  id                String    @id @default(cuid())
+  planItemId        String
+  workerId          String
+  assigneeId        String
+  createdById       String
+  title             String
+  description       String?
+  dueDate           DateTime
+  completedAt       DateTime?
+  method            String?
+  status            String    @default("pending") // pending, in_progress, completed, cancelled, overdue
+  priority          String    @default("medium") // low, medium, high, urgent
+  // 証跡
+  attachments       String[]
+  // 本人同意
+  consentRequired   Boolean   @default(false)
+  consentObtainedAt DateTime?
+  consentMethod     String?   // written, electronic, verbal
+  consentEvidence   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  planItem SupportPlanItem @relation(fields: [planItemId], references: [id], onDelete: Cascade)
+  worker   Worker          @relation(fields: [workerId], references: [id])
+  assignee User            @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator  User            @relation("TaskCreator", fields: [createdById], references: [id])
+
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("support_tasks")
+}
+
+// ==================== 定期面談 ====================
+
+model Interview {
+  id                String    @id @default(cuid())
+  tenantId          String
+  workerId          String
+  // 予定
+  scheduledDate     DateTime
+  scheduledTime     String?
+  location          String?
+  locationType      String    @default("in_person") // in_person, video, phone
+  timezone          String    @default("Asia/Tokyo")
+  // 担当
+  interviewerId     String
+  interpreterId     String?
+  // 実施
+  actualDate        DateTime?
+  actualTime        String?
+  duration          Int?      // 分
+  conductedLanguage String?
+  // 記録
+  status            String    @default("scheduled") // scheduled, confirmed, completed, cancelled, no_show, rescheduled
+  summary           String?
+  followUpRequired  Boolean   @default(false)
+  followUpNotes     String?
+  // 添付
+  attachments       String[]
+  createdBy         String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  worker      Worker           @relation(fields: [workerId], references: [id])
+  interviewer User             @relation("Interviewer", fields: [interviewerId], references: [id])
+  interpreter User?            @relation("Interpreter", fields: [interpreterId], references: [id])
+  topics      InterviewTopic[]
+  issues      InterviewIssue[]
+
+  @@index([tenantId])
+  @@index([workerId])
+  @@index([scheduledDate])
+  @@map("interviews")
+}
+
+model InterviewTopic {
+  id             String  @id @default(cuid())
+  interviewId    String
+  category       String  // work_conditions, living_conditions, health, japanese_learning, community, concerns, other
+  title          String
+  content        String
+  workerResponse String?
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@map("interview_topics")
+}
+
+model InterviewIssue {
+  id          String    @id @default(cuid())
+  interviewId String
+  title       String
+  description String
+  severity    String    // low, medium, high, critical
+  status      String    @default("open") // open, in_progress, resolved, escalated
+  resolution  String?
+  resolvedAt  DateTime?
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@map("interview_issues")
+}
+
+// ==================== 相談・苦情 ====================
+
+model Consultation {
+  id              String    @id @default(cuid())
+  tenantId        String
+  workerId        String
+  companyId       String
+  // 受付情報
+  category        String    // work_conditions, harassment, wage, living, health, visa, family, other
+  subject         String
+  description     String
+  receivedAt      DateTime  @default(now())
+  receivedById    String
+  receivedMethod  String    // phone, email, in_person, app, other
+  // 言語
+  language        String
+  interpreterId   String?
+  interpreterNotes String?
+  // ステータス
+  status          String    @default("received") // received, in_progress, pending_response, resolved, closed, escalated
+  priority        String    @default("medium") // low, medium, high, urgent
+  // 対応
+  assigneeId      String?
+  dueDate         DateTime?
+  // クローズ
+  resolution      String?
+  closedAt        DateTime?
+  closedById      String?
+  // 添付
+  attachments     String[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant     Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  worker     Worker                 @relation(fields: [workerId], references: [id])
+  company    Company                @relation(fields: [companyId], references: [id])
+  receivedBy User                   @relation("ConsultationReceiver", fields: [receivedById], references: [id])
+  assignee   User?                  @relation("ConsultationAssignee", fields: [assigneeId], references: [id])
+  responses  ConsultationResponse[]
+  escalations ConsultationEscalation[]
+
+  @@index([tenantId])
+  @@index([workerId])
+  @@index([status])
+  @@map("consultations")
+}
+
+model ConsultationResponse {
+  id             String   @id @default(cuid())
+  consultationId String
+  responderId    String
+  content        String
+  language       String
+  attachments    String[]
+  createdAt      DateTime @default(now())
+
+  consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  responder    User         @relation(fields: [responderId], references: [id])
+
+  @@map("consultation_responses")
+}
+
+model ConsultationEscalation {
+  id             String   @id @default(cuid())
+  consultationId String
+  escalatedById  String
+  escalatedToId  String
+  reason         String
+  createdAt      DateTime @default(now())
+
+  consultation Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+
+  @@map("consultation_escalations")
+}
+
+// ==================== 書類管理 ====================
+
+model DocumentTemplate {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  name                String
+  description         String?
+  category            String   // support_plan, employment, immigration, interview, consultation, notification, other
+  type                String   // pdf, excel, word
+  content             String   // HTML/Mustacheテンプレート
+  contentTranslations Json     // { "en": "...", "vi": "..." }
+  variables           Json     // TemplateVariable[]
+  version             Int      @default(1)
+  status              String   @default("draft") // draft, active, archived
+  approvedById        String?
+  approvedAt          DateTime?
+  isLegalDocument     Boolean  @default(false)
+  legalTextVersion    String?
+  createdById         String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents Document[]
+
+  @@map("document_templates")
+}
+
+model Document {
+  id               String    @id @default(cuid())
+  tenantId         String
+  templateId       String
+  workerId         String?
+  companyId        String?
+  // 内容
+  title            String
+  language         String
+  variables        Json      // Record<string, unknown>
+  // 生成
+  generatedFileUrl String?
+  generatedAt      DateTime?
+  // 版管理
+  version          Int       @default(1)
+  versionType      String    @default("original") // original, revision, resubmission
+  parentVersionId  String?
+  // 不備チェック
+  validationStatus String    @default("pending") // pending, valid, invalid
+  validationErrors Json?     // ValidationError[]
+  // 承認
+  status           String    @default("draft") // draft, pending_review, pending_approval, approved, rejected, submitted, returned
+  approvedById     String?
+  approvedAt       DateTime?
+  // 提出
+  submittedAt      DateTime?
+  submittedById    String?
+  // メタ
+  createdById      String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  template DocumentTemplate @relation(fields: [templateId], references: [id])
+  worker   Worker?          @relation(fields: [workerId], references: [id])
+  creator  User             @relation("DocumentCreator", fields: [createdById], references: [id])
+  approver User?            @relation("DocumentApprover", fields: [approvedById], references: [id])
+  versions DocumentVersion[]
+
+  @@index([tenantId])
+  @@index([workerId])
+  @@index([status])
+  @@map("documents")
+}
+
+model DocumentVersion {
+  id         String   @id @default(cuid())
+  documentId String
+  version    Int
+  versionType String
+  fileUrl    String
+  changes    String?
+  createdById String
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_versions")
+}
+
+// ==================== 監査ログ ====================
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  tenantId     String
+  userId       String
+  userRole     String
+  userEmail    String
+  timestamp    DateTime @default(now())
+  action       String   // create, read, update, delete, approve, reject, submit, export, login, logout, permission_change
+  resource     String   // user, worker, company, support_plan, support_task, interview, consultation, document, template, tenant, branch, team
+  resourceId   String
+  resourceName String?
+  ipAddress    String
+  userAgent    String
+  details      Json     // AuditDetails
+  status       String   // success, failure
+  errorMessage String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([timestamp])
+  @@index([resource, resourceId])
+  @@map("audit_logs")
+}

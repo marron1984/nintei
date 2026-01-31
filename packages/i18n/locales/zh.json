@@ -1,0 +1,246 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "search": "搜索",
+    "filter": "筛选",
+    "export": "导出",
+    "import": "导入",
+    "loading": "加载中...",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "submit": "提交",
+    "approve": "批准",
+    "reject": "拒绝",
+    "close": "关闭",
+    "yes": "是",
+    "no": "否"
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出登录",
+    "email": "邮箱",
+    "password": "密码",
+    "forgot_password": "忘记密码",
+    "2fa_code": "验证码",
+    "2fa_required": "需要双因素认证"
+  },
+  "nav": {
+    "dashboard": "仪表盘",
+    "workers": "劳动者",
+    "companies": "公司",
+    "support_plans": "支援计划",
+    "interviews": "定期面谈",
+    "consultations": "咨询",
+    "documents": "文档",
+    "tasks": "任务",
+    "reports": "报告",
+    "settings": "设置",
+    "audit_logs": "审计日志"
+  },
+  "worker": {
+    "title": "劳动者信息",
+    "list": "劳动者列表",
+    "detail": "详细信息",
+    "basic_info": "基本信息",
+    "contact": "联系方式",
+    "residence": "居留信息",
+    "employment": "雇佣信息",
+    "name": "姓名",
+    "name_kana": "姓名（假名）",
+    "name_native": "姓名（母语）",
+    "date_of_birth": "出生日期",
+    "gender": "性别",
+    "nationality": "国籍",
+    "native_language": "母语",
+    "japanese_level": "日语水平",
+    "residence_card_number": "在留卡号",
+    "residence_status": "在留资格",
+    "residence_period": "在留期间",
+    "residence_expiry": "在留期限",
+    "company": "公司",
+    "office": "事务所",
+    "site": "工作现场",
+    "status": {
+      "active": "支援中",
+      "completed": "已完成",
+      "suspended": "暂停",
+      "terminated": "终止"
+    }
+  },
+  "company": {
+    "title": "公司",
+    "list": "公司列表",
+    "detail": "公司详情",
+    "name": "公司名称",
+    "corporate_number": "法人番号",
+    "industry": "行业",
+    "headquarters": "总部",
+    "offices": "事务所",
+    "sites": "现场",
+    "contacts": "联系人",
+    "contract_period": "合同期限"
+  },
+  "support_plan": {
+    "title": "支援计划",
+    "list": "支援计划列表",
+    "template": "模板",
+    "items": "支援项目",
+    "tasks": "任务",
+    "item_1": "入境前指导",
+    "item_2": "机场接送",
+    "item_3": "住房和生活必需品",
+    "item_4": "生活指导",
+    "item_5": "行政手续协助",
+    "item_6": "日语学习",
+    "item_7": "咨询和投诉处理",
+    "item_8": "日本社区融入",
+    "item_9": "换工作支援",
+    "item_10": "定期面谈",
+    "status": {
+      "draft": "草稿",
+      "pending_approval": "待批准",
+      "active": "进行中",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    }
+  },
+  "interview": {
+    "title": "定期面谈",
+    "list": "面谈列表",
+    "schedule": "日程",
+    "record": "记录",
+    "scheduled_date": "预定日期",
+    "location": "地点",
+    "interviewer": "面谈者",
+    "interpreter": "翻译",
+    "duration": "时长",
+    "summary": "摘要",
+    "topics": "话题",
+    "issues": "问题",
+    "follow_up": "后续跟进",
+    "status": {
+      "scheduled": "已安排",
+      "confirmed": "已确认",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "no_show": "未出席",
+      "rescheduled": "已改期"
+    }
+  },
+  "consultation": {
+    "title": "咨询",
+    "list": "咨询列表",
+    "new": "新咨询",
+    "subject": "主题",
+    "description": "描述",
+    "category": "类别",
+    "priority": "优先级",
+    "language": "语言",
+    "interpreter": "翻译",
+    "response": "回复",
+    "resolution": "解决方案",
+    "categories": {
+      "work_conditions": "工作条件",
+      "harassment": "骚扰",
+      "wage": "工资",
+      "living": "生活",
+      "health": "健康",
+      "visa": "签证/居留",
+      "family": "家庭",
+      "other": "其他"
+    },
+    "status": {
+      "received": "已收到",
+      "in_progress": "处理中",
+      "pending_response": "等待回复",
+      "resolved": "已解决",
+      "closed": "已关闭",
+      "escalated": "已上报"
+    }
+  },
+  "document": {
+    "title": "文档",
+    "list": "文档列表",
+    "templates": "模板",
+    "generate": "生成",
+    "version": "版本",
+    "validation": "验证",
+    "approval": "批准",
+    "status": {
+      "draft": "草稿",
+      "pending_review": "待审核",
+      "pending_approval": "待批准",
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "submitted": "已提交",
+      "returned": "已退回"
+    }
+  },
+  "task": {
+    "title": "任务",
+    "list": "任务列表",
+    "assignee": "负责人",
+    "due_date": "截止日期",
+    "priority": "优先级",
+    "status": {
+      "pending": "待处理",
+      "in_progress": "进行中",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "overdue": "已逾期"
+    },
+    "priority_levels": {
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "urgent": "紧急"
+    }
+  },
+  "alert": {
+    "title": "警报",
+    "residence_expiry": "居留期限警报",
+    "contract_expiry": "合同期限警报",
+    "interview_due": "面谈到期警报",
+    "document_due": "文档到期警报"
+  },
+  "error": {
+    "auth": {
+      "invalid_credentials": "邮箱或密码不正确",
+      "token_expired": "会话已过期",
+      "token_invalid": "无效会话",
+      "2fa_required": "需要双因素认证",
+      "2fa_invalid": "验证码不正确",
+      "permission_denied": "您没有权限执行此操作",
+      "resource_forbidden": "禁止访问此资源"
+    },
+    "validation": {
+      "failed": "验证失败",
+      "required_field": "此字段为必填",
+      "invalid_format": "格式无效",
+      "out_of_range": "值超出范围"
+    },
+    "resource": {
+      "not_found": "未找到资源",
+      "already_exists": "已存在",
+      "conflict": "发生冲突",
+      "locked": "资源已锁定"
+    },
+    "business": {
+      "invalid_state": "此操作的状态无效",
+      "approval_required": "需要批准",
+      "deadline_passed": "已过截止日期",
+      "quota_exceeded": "超过配额"
+    },
+    "system": {
+      "internal_error": "内部系统错误",
+      "service_unavailable": "服务暂时不可用",
+      "database_error": "数据库错误",
+      "external_service_error": "外部服务错误"
+    }
+  }
+}

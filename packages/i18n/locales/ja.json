@@ -1,0 +1,246 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "create": "作成",
+    "search": "検索",
+    "filter": "フィルター",
+    "export": "エクスポート",
+    "import": "インポート",
+    "loading": "読み込み中...",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "submit": "送信",
+    "approve": "承認",
+    "reject": "却下",
+    "close": "閉じる",
+    "yes": "はい",
+    "no": "いいえ"
+  },
+  "auth": {
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "forgot_password": "パスワードを忘れた方",
+    "2fa_code": "認証コード",
+    "2fa_required": "2要素認証が必要です"
+  },
+  "nav": {
+    "dashboard": "ダッシュボード",
+    "workers": "外国人管理",
+    "companies": "受入企業",
+    "support_plans": "支援計画",
+    "interviews": "定期面談",
+    "consultations": "相談・苦情",
+    "documents": "書類管理",
+    "tasks": "タスク",
+    "reports": "レポート",
+    "settings": "設定",
+    "audit_logs": "監査ログ"
+  },
+  "worker": {
+    "title": "外国人情報",
+    "list": "外国人一覧",
+    "detail": "詳細情報",
+    "basic_info": "基本情報",
+    "contact": "連絡先",
+    "residence": "在留情報",
+    "employment": "雇用情報",
+    "name": "氏名",
+    "name_kana": "氏名（カナ）",
+    "name_native": "氏名（母語）",
+    "date_of_birth": "生年月日",
+    "gender": "性別",
+    "nationality": "国籍",
+    "native_language": "母語",
+    "japanese_level": "日本語レベル",
+    "residence_card_number": "在留カード番号",
+    "residence_status": "在留資格",
+    "residence_period": "在留期間",
+    "residence_expiry": "在留期限",
+    "company": "受入企業",
+    "office": "事業所",
+    "site": "現場",
+    "status": {
+      "active": "支援中",
+      "completed": "支援完了",
+      "suspended": "一時停止",
+      "terminated": "終了"
+    }
+  },
+  "company": {
+    "title": "受入企業",
+    "list": "企業一覧",
+    "detail": "企業詳細",
+    "name": "企業名",
+    "corporate_number": "法人番号",
+    "industry": "業種",
+    "headquarters": "本社",
+    "offices": "事業所",
+    "sites": "現場",
+    "contacts": "担当者",
+    "contract_period": "契約期間"
+  },
+  "support_plan": {
+    "title": "支援計画",
+    "list": "支援計画一覧",
+    "template": "テンプレート",
+    "items": "支援項目",
+    "tasks": "タスク",
+    "item_1": "事前ガイダンス",
+    "item_2": "出入国時の送迎",
+    "item_3": "住居確保・生活必需品",
+    "item_4": "生活オリエンテーション",
+    "item_5": "公的手続への同行",
+    "item_6": "日本語学習機会の提供",
+    "item_7": "相談・苦情対応",
+    "item_8": "日本人との交流促進",
+    "item_9": "転職支援",
+    "item_10": "定期面談",
+    "status": {
+      "draft": "下書き",
+      "pending_approval": "承認待ち",
+      "active": "実施中",
+      "completed": "完了",
+      "cancelled": "キャンセル"
+    }
+  },
+  "interview": {
+    "title": "定期面談",
+    "list": "面談一覧",
+    "schedule": "面談予定",
+    "record": "面談記録",
+    "scheduled_date": "予定日時",
+    "location": "場所",
+    "interviewer": "面談担当者",
+    "interpreter": "通訳者",
+    "duration": "所要時間",
+    "summary": "概要",
+    "topics": "話題",
+    "issues": "課題・問題点",
+    "follow_up": "フォローアップ",
+    "status": {
+      "scheduled": "予定",
+      "confirmed": "確認済み",
+      "completed": "完了",
+      "cancelled": "キャンセル",
+      "no_show": "未出席",
+      "rescheduled": "再予定"
+    }
+  },
+  "consultation": {
+    "title": "相談・苦情",
+    "list": "相談一覧",
+    "new": "新規相談",
+    "subject": "件名",
+    "description": "内容",
+    "category": "カテゴリ",
+    "priority": "優先度",
+    "language": "言語",
+    "interpreter": "通訳者",
+    "response": "対応",
+    "resolution": "解決内容",
+    "categories": {
+      "work_conditions": "労働条件",
+      "harassment": "ハラスメント",
+      "wage": "賃金",
+      "living": "生活",
+      "health": "健康",
+      "visa": "ビザ・在留",
+      "family": "家族",
+      "other": "その他"
+    },
+    "status": {
+      "received": "受付",
+      "in_progress": "対応中",
+      "pending_response": "回答待ち",
+      "resolved": "解決",
+      "closed": "クローズ",
+      "escalated": "エスカレーション"
+    }
+  },
+  "document": {
+    "title": "書類管理",
+    "list": "書類一覧",
+    "templates": "テンプレート",
+    "generate": "生成",
+    "version": "バージョン",
+    "validation": "検証",
+    "approval": "承認",
+    "status": {
+      "draft": "下書き",
+      "pending_review": "レビュー待ち",
+      "pending_approval": "承認待ち",
+      "approved": "承認済み",
+      "rejected": "却下",
+      "submitted": "提出済み",
+      "returned": "差戻し"
+    }
+  },
+  "task": {
+    "title": "タスク",
+    "list": "タスク一覧",
+    "assignee": "担当者",
+    "due_date": "期限",
+    "priority": "優先度",
+    "status": {
+      "pending": "未着手",
+      "in_progress": "進行中",
+      "completed": "完了",
+      "cancelled": "キャンセル",
+      "overdue": "期限超過"
+    },
+    "priority_levels": {
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "urgent": "緊急"
+    }
+  },
+  "alert": {
+    "title": "アラート",
+    "residence_expiry": "在留期限アラート",
+    "contract_expiry": "契約期限アラート",
+    "interview_due": "面談期限アラート",
+    "document_due": "届出期限アラート"
+  },
+  "error": {
+    "auth": {
+      "invalid_credentials": "メールアドレスまたはパスワードが正しくありません",
+      "token_expired": "セッションの有効期限が切れました",
+      "token_invalid": "無効なセッションです",
+      "2fa_required": "2要素認証が必要です",
+      "2fa_invalid": "認証コードが正しくありません",
+      "permission_denied": "この操作を行う権限がありません",
+      "resource_forbidden": "このリソースへのアクセスは許可されていません"
+    },
+    "validation": {
+      "failed": "入力内容に誤りがあります",
+      "required_field": "必須項目です",
+      "invalid_format": "形式が正しくありません",
+      "out_of_range": "値が範囲外です"
+    },
+    "resource": {
+      "not_found": "データが見つかりません",
+      "already_exists": "既に存在します",
+      "conflict": "競合が発生しました",
+      "locked": "ロックされています"
+    },
+    "business": {
+      "invalid_state": "この状態では操作できません",
+      "approval_required": "承認が必要です",
+      "deadline_passed": "期限を過ぎています",
+      "quota_exceeded": "上限を超えています"
+    },
+    "system": {
+      "internal_error": "システムエラーが発生しました",
+      "service_unavailable": "サービスが一時的に利用できません",
+      "database_error": "データベースエラーが発生しました",
+      "external_service_error": "外部サービスエラーが発生しました"
+    }
+  }
+}

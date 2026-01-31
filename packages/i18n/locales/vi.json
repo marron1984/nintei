@@ -1,0 +1,246 @@
+{
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "create": "Tạo",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "export": "Xuất",
+    "import": "Nhập",
+    "loading": "Đang tải...",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "submit": "Gửi",
+    "approve": "Phê duyệt",
+    "reject": "Từ chối",
+    "close": "Đóng",
+    "yes": "Có",
+    "no": "Không"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgot_password": "Quên mật khẩu",
+    "2fa_code": "Mã xác thực",
+    "2fa_required": "Yêu cầu xác thực hai yếu tố"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "workers": "Người lao động",
+    "companies": "Công ty",
+    "support_plans": "Kế hoạch hỗ trợ",
+    "interviews": "Phỏng vấn",
+    "consultations": "Tư vấn",
+    "documents": "Tài liệu",
+    "tasks": "Nhiệm vụ",
+    "reports": "Báo cáo",
+    "settings": "Cài đặt",
+    "audit_logs": "Nhật ký kiểm toán"
+  },
+  "worker": {
+    "title": "Thông tin người lao động",
+    "list": "Danh sách người lao động",
+    "detail": "Chi tiết",
+    "basic_info": "Thông tin cơ bản",
+    "contact": "Liên hệ",
+    "residence": "Thông tin cư trú",
+    "employment": "Việc làm",
+    "name": "Họ tên",
+    "name_kana": "Tên (Kana)",
+    "name_native": "Tên (Tiếng mẹ đẻ)",
+    "date_of_birth": "Ngày sinh",
+    "gender": "Giới tính",
+    "nationality": "Quốc tịch",
+    "native_language": "Ngôn ngữ mẹ đẻ",
+    "japanese_level": "Trình độ tiếng Nhật",
+    "residence_card_number": "Số thẻ cư trú",
+    "residence_status": "Tư cách cư trú",
+    "residence_period": "Thời hạn cư trú",
+    "residence_expiry": "Ngày hết hạn cư trú",
+    "company": "Công ty",
+    "office": "Văn phòng",
+    "site": "Địa điểm làm việc",
+    "status": {
+      "active": "Đang hoạt động",
+      "completed": "Hoàn thành",
+      "suspended": "Tạm dừng",
+      "terminated": "Kết thúc"
+    }
+  },
+  "company": {
+    "title": "Công ty",
+    "list": "Danh sách công ty",
+    "detail": "Chi tiết công ty",
+    "name": "Tên công ty",
+    "corporate_number": "Số đăng ký công ty",
+    "industry": "Ngành nghề",
+    "headquarters": "Trụ sở chính",
+    "offices": "Văn phòng",
+    "sites": "Địa điểm",
+    "contacts": "Liên hệ",
+    "contract_period": "Thời hạn hợp đồng"
+  },
+  "support_plan": {
+    "title": "Kế hoạch hỗ trợ",
+    "list": "Danh sách kế hoạch hỗ trợ",
+    "template": "Mẫu",
+    "items": "Hạng mục hỗ trợ",
+    "tasks": "Nhiệm vụ",
+    "item_1": "Hướng dẫn trước khi nhập cảnh",
+    "item_2": "Đón/tiễn tại sân bay",
+    "item_3": "Nhà ở và đồ dùng thiết yếu",
+    "item_4": "Hướng dẫn cuộc sống",
+    "item_5": "Hỗ trợ thủ tục hành chính",
+    "item_6": "Học tiếng Nhật",
+    "item_7": "Tư vấn và giải quyết khiếu nại",
+    "item_8": "Hội nhập cộng đồng Nhật Bản",
+    "item_9": "Hỗ trợ đổi việc",
+    "item_10": "Phỏng vấn định kỳ",
+    "status": {
+      "draft": "Bản nháp",
+      "pending_approval": "Chờ phê duyệt",
+      "active": "Đang hoạt động",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy"
+    }
+  },
+  "interview": {
+    "title": "Phỏng vấn định kỳ",
+    "list": "Danh sách phỏng vấn",
+    "schedule": "Lịch trình",
+    "record": "Ghi chép",
+    "scheduled_date": "Ngày dự kiến",
+    "location": "Địa điểm",
+    "interviewer": "Người phỏng vấn",
+    "interpreter": "Phiên dịch",
+    "duration": "Thời lượng",
+    "summary": "Tóm tắt",
+    "topics": "Chủ đề",
+    "issues": "Vấn đề",
+    "follow_up": "Theo dõi",
+    "status": {
+      "scheduled": "Đã lên lịch",
+      "confirmed": "Đã xác nhận",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy",
+      "no_show": "Vắng mặt",
+      "rescheduled": "Đổi lịch"
+    }
+  },
+  "consultation": {
+    "title": "Tư vấn",
+    "list": "Danh sách tư vấn",
+    "new": "Tư vấn mới",
+    "subject": "Chủ đề",
+    "description": "Mô tả",
+    "category": "Danh mục",
+    "priority": "Ưu tiên",
+    "language": "Ngôn ngữ",
+    "interpreter": "Phiên dịch",
+    "response": "Phản hồi",
+    "resolution": "Giải quyết",
+    "categories": {
+      "work_conditions": "Điều kiện làm việc",
+      "harassment": "Quấy rối",
+      "wage": "Tiền lương",
+      "living": "Cuộc sống",
+      "health": "Sức khỏe",
+      "visa": "Visa/Cư trú",
+      "family": "Gia đình",
+      "other": "Khác"
+    },
+    "status": {
+      "received": "Đã nhận",
+      "in_progress": "Đang xử lý",
+      "pending_response": "Chờ phản hồi",
+      "resolved": "Đã giải quyết",
+      "closed": "Đã đóng",
+      "escalated": "Đã chuyển tiếp"
+    }
+  },
+  "document": {
+    "title": "Tài liệu",
+    "list": "Danh sách tài liệu",
+    "templates": "Mẫu",
+    "generate": "Tạo",
+    "version": "Phiên bản",
+    "validation": "Xác thực",
+    "approval": "Phê duyệt",
+    "status": {
+      "draft": "Bản nháp",
+      "pending_review": "Chờ xem xét",
+      "pending_approval": "Chờ phê duyệt",
+      "approved": "Đã phê duyệt",
+      "rejected": "Bị từ chối",
+      "submitted": "Đã nộp",
+      "returned": "Trả lại"
+    }
+  },
+  "task": {
+    "title": "Nhiệm vụ",
+    "list": "Danh sách nhiệm vụ",
+    "assignee": "Người được giao",
+    "due_date": "Hạn chót",
+    "priority": "Ưu tiên",
+    "status": {
+      "pending": "Chờ xử lý",
+      "in_progress": "Đang thực hiện",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy",
+      "overdue": "Quá hạn"
+    },
+    "priority_levels": {
+      "low": "Thấp",
+      "medium": "Trung bình",
+      "high": "Cao",
+      "urgent": "Khẩn cấp"
+    }
+  },
+  "alert": {
+    "title": "Cảnh báo",
+    "residence_expiry": "Cảnh báo hết hạn cư trú",
+    "contract_expiry": "Cảnh báo hết hạn hợp đồng",
+    "interview_due": "Cảnh báo phỏng vấn",
+    "document_due": "Cảnh báo tài liệu"
+  },
+  "error": {
+    "auth": {
+      "invalid_credentials": "Email hoặc mật khẩu không đúng",
+      "token_expired": "Phiên đã hết hạn",
+      "token_invalid": "Phiên không hợp lệ",
+      "2fa_required": "Yêu cầu xác thực hai yếu tố",
+      "2fa_invalid": "Mã xác thực không đúng",
+      "permission_denied": "Bạn không có quyền thực hiện hành động này",
+      "resource_forbidden": "Không được phép truy cập tài nguyên này"
+    },
+    "validation": {
+      "failed": "Xác thực thất bại",
+      "required_field": "Trường này là bắt buộc",
+      "invalid_format": "Định dạng không hợp lệ",
+      "out_of_range": "Giá trị ngoài phạm vi"
+    },
+    "resource": {
+      "not_found": "Không tìm thấy tài nguyên",
+      "already_exists": "Đã tồn tại",
+      "conflict": "Xảy ra xung đột",
+      "locked": "Tài nguyên bị khóa"
+    },
+    "business": {
+      "invalid_state": "Trạng thái không hợp lệ cho thao tác này",
+      "approval_required": "Yêu cầu phê duyệt",
+      "deadline_passed": "Đã quá hạn",
+      "quota_exceeded": "Vượt quá hạn mức"
+    },
+    "system": {
+      "internal_error": "Lỗi hệ thống nội bộ",
+      "service_unavailable": "Dịch vụ tạm thời không khả dụng",
+      "database_error": "Lỗi cơ sở dữ liệu",
+      "external_service_error": "Lỗi dịch vụ bên ngoài"
+    }
+  }
+}
