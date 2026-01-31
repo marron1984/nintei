@@ -21,37 +21,171 @@ async function main() {
 
   console.log(`✅ Created tenant: ${tenant.name}`);
 
-  // Create branch
-  const branch = await prisma.branch.upsert({
+  // Create organization units (hierarchical)
+  const headquarters = await prisma.orgUnit.upsert({
     where: { tenantId_code: { tenantId: tenant.id, code: 'HQ' } },
     update: {},
     create: {
       tenantId: tenant.id,
       name: '本社',
       code: 'HQ',
+      type: 'branch',
+      level: 0,
       prefecture: '東京都',
       city: '港区',
       street: '芝公園1-1-1',
-      isHeadquarters: true,
       status: 'active',
     },
   });
 
-  console.log(`✅ Created branch: ${branch.name}`);
+  console.log(`✅ Created org unit: ${headquarters.name}`);
 
-  // Create team
-  const team = await prisma.team.upsert({
-    where: { branchId_code: { branchId: branch.id, code: 'SUPPORT' } },
+  const supportTeam = await prisma.orgUnit.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'SUPPORT' } },
     update: {},
     create: {
-      branchId: branch.id,
+      tenantId: tenant.id,
+      parentId: headquarters.id,
       name: '支援チーム',
       code: 'SUPPORT',
+      type: 'team',
+      level: 1,
       status: 'active',
     },
   });
 
-  console.log(`✅ Created team: ${team.name}`);
+  console.log(`✅ Created org unit: ${supportTeam.name}`);
+
+  // Create roles
+  const adminRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'RSO_ADMIN' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '管理者',
+      code: 'RSO_ADMIN',
+      description: '登録支援機関の管理者',
+      permissions: [
+        'tenant:*', 'user:*', 'org_unit:*', 'company:*', 'foreign_worker:*',
+        'support_plan:*', 'interview:*', 'consultation:*', 'document:*', 'audit:read',
+      ],
+      isSystem: true,
+    },
+  });
+
+  const managerRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'RSO_MANAGER' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '支援責任者',
+      code: 'RSO_MANAGER',
+      description: '支援責任者（承認権限あり）',
+      permissions: [
+        'user:read', 'company:*', 'foreign_worker:*',
+        'support_plan:*', 'interview:*', 'consultation:*', 'document:*', 'audit:read',
+      ],
+      isSystem: true,
+    },
+  });
+
+  const staffRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'RSO_STAFF' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '支援担当者',
+      code: 'RSO_STAFF',
+      description: '支援担当者',
+      permissions: [
+        'company:read', 'foreign_worker:read', 'foreign_worker:update',
+        'support_plan:read', 'support_plan:create', 'support_plan:update',
+        'interview:*', 'consultation:*', 'document:read', 'document:create',
+      ],
+      isSystem: true,
+    },
+  });
+
+  const auditorRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'RSO_AUDITOR' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '監査閲覧',
+      code: 'RSO_AUDITOR',
+      description: '監査ログ閲覧専用',
+      permissions: [
+        'audit:read', 'company:read', 'foreign_worker:read',
+        'support_plan:read', 'interview:read', 'consultation:read', 'document:read',
+      ],
+      isSystem: true,
+    },
+  });
+
+  const companyAdminRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'COMPANY_ADMIN' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '受入企業管理者',
+      code: 'COMPANY_ADMIN',
+      description: '受入企業の管理者',
+      permissions: [
+        'company:read:own', 'foreign_worker:read:own', 'foreign_worker:update:own',
+        'support_plan:read:own', 'interview:read:own', 'document:read:own',
+      ],
+      isSystem: true,
+    },
+  });
+
+  const companyHrRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'COMPANY_HR' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '受入企業人事',
+      code: 'COMPANY_HR',
+      description: '受入企業の人事担当者',
+      permissions: [
+        'company:read:own', 'foreign_worker:read:own',
+        'support_plan:read:own', 'interview:read:own', 'document:read:own',
+      ],
+      isSystem: true,
+    },
+  });
+
+  const legalStaffRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'LEGAL_STAFF' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '士業実務',
+      code: 'LEGAL_STAFF',
+      description: '士業の実務担当者',
+      permissions: [
+        'company:read', 'foreign_worker:read',
+        'support_plan:read', 'document:*',
+      ],
+      isSystem: true,
+    },
+  });
+
+  const legalViewerRole = await prisma.role.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: 'LEGAL_VIEWER' } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      name: '士業閲覧',
+      code: 'LEGAL_VIEWER',
+      description: '士業の閲覧専用',
+      permissions: [
+        'company:read', 'foreign_worker:read', 'support_plan:read', 'document:read',
+      ],
+      isSystem: true,
+    },
+  });
+
+  console.log('✅ Created system roles');
 
   // Create admin user
   const passwordHash = await bcrypt.hash('password123', 12);
@@ -61,15 +195,31 @@ async function main() {
     update: {},
     create: {
       tenantId: tenant.id,
-      branchId: branch.id,
       email: 'admin@example.com',
       passwordHash,
       name: '管理者 太郎',
       nameKana: 'カンリシャ タロウ',
-      role: 'tenant_admin',
       status: 'active',
       preferredLanguage: 'ja',
       timezone: 'Asia/Tokyo',
+    },
+  });
+
+  // Create membership for admin
+  await prisma.membership.upsert({
+    where: {
+      userId_orgUnitId_roleId: {
+        userId: admin.id,
+        orgUnitId: headquarters.id,
+        roleId: adminRole.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: admin.id,
+      orgUnitId: headquarters.id,
+      roleId: adminRole.id,
+      isPrimary: true,
     },
   });
 
@@ -81,16 +231,31 @@ async function main() {
     update: {},
     create: {
       tenantId: tenant.id,
-      branchId: branch.id,
-      teamId: team.id,
       email: 'staff@example.com',
       passwordHash,
       name: '支援 花子',
       nameKana: 'シエン ハナコ',
-      role: 'support_staff',
       status: 'active',
       preferredLanguage: 'ja',
       timezone: 'Asia/Tokyo',
+    },
+  });
+
+  // Create membership for staff
+  await prisma.membership.upsert({
+    where: {
+      userId_orgUnitId_roleId: {
+        userId: staff.id,
+        orgUnitId: supportTeam.id,
+        roleId: staffRole.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: staff.id,
+      orgUnitId: supportTeam.id,
+      roleId: staffRole.id,
+      isPrimary: true,
     },
   });
 
@@ -127,8 +292,8 @@ async function main() {
     where: { companyId: company.id },
   });
 
-  // Create sample worker
-  const worker = await prisma.worker.create({
+  // Create sample foreign worker
+  const foreignWorker = await prisma.foreignWorker.create({
     data: {
       tenantId: tenant.id,
       companyId: company.id,
@@ -147,22 +312,33 @@ async function main() {
       understandsLanguages: ['vi', 'en', 'ja'],
       japaneseLevel: 'N3',
       residenceCardNumber: 'AB12345678CD',
-      residenceStatus: 'specified_skilled_1',
+      residenceStatus: '特定技能1号',
       residencePeriod: '1年',
       residenceExpiry: new Date('2025-12-31'),
       residenceIssueDate: new Date('2024-01-01'),
-      contractStartDate: new Date('2024-01-15'),
+      status: 'active',
+      supportStartDate: new Date('2024-01-15'),
+    },
+  });
+
+  console.log(`✅ Created foreign worker: ${foreignWorker.lastName} ${foreignWorker.firstName}`);
+
+  // Create employment contract
+  await prisma.employmentContract.create({
+    data: {
+      foreignWorkerId: foreignWorker.id,
+      startDate: new Date('2024-01-15'),
+      endDate: new Date('2025-01-14'),
       jobCategory: '製造業',
       occupation: '機械加工',
       salary: 200000,
       salaryType: 'monthly',
       workingHoursPerWeek: 40,
       status: 'active',
-      supportStartDate: new Date('2024-01-15'),
     },
   });
 
-  console.log(`✅ Created worker: ${worker.lastName} ${worker.firstName}`);
+  console.log('✅ Created employment contract');
 
   // Create support plan template
   const template = await prisma.supportPlanTemplate.create({
@@ -280,17 +456,64 @@ async function main() {
       name: '支援計画書',
       description: '特定技能1号支援計画書テンプレート',
       category: 'support_plan',
-      type: 'pdf',
-      content: '<h1>支援計画書</h1><p>{{workerName}}様</p>',
+      format: 'html',
+      content: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>支援計画書</title></head>
+<body>
+<h1>1号特定技能外国人支援計画書</h1>
+<p>対象者: {{workerName}}</p>
+<p>受入企業: {{companyName}}</p>
+<p>支援開始日: {{startDate}}</p>
+<h2>支援内容</h2>
+{{#items}}
+<h3>{{itemNumber}}. {{title}}</h3>
+<p>{{description}}</p>
+{{/items}}
+</body>
+</html>`,
       contentTranslations: {
-        en: '<h1>Support Plan</h1><p>Dear {{workerName}}</p>',
-        vi: '<h1>Kế hoạch hỗ trợ</h1><p>Kính gửi {{workerName}}</p>',
+        en: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Support Plan</title></head>
+<body>
+<h1>Support Plan for Specified Skilled Worker (i)</h1>
+<p>Name: {{workerName}}</p>
+<p>Company: {{companyName}}</p>
+<p>Start Date: {{startDate}}</p>
+<h2>Support Items</h2>
+{{#items}}
+<h3>{{itemNumber}}. {{title}}</h3>
+<p>{{description}}</p>
+{{/items}}
+</body>
+</html>`,
+        vi: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Kế hoạch hỗ trợ</title></head>
+<body>
+<h1>Kế hoạch hỗ trợ lao động kỹ năng đặc định loại 1</h1>
+<p>Họ tên: {{workerName}}</p>
+<p>Công ty: {{companyName}}</p>
+<p>Ngày bắt đầu: {{startDate}}</p>
+<h2>Nội dung hỗ trợ</h2>
+{{#items}}
+<h3>{{itemNumber}}. {{title}}</h3>
+<p>{{description}}</p>
+{{/items}}
+</body>
+</html>`,
       },
       variables: [
-        { key: 'workerName', label: '外国人氏名', type: 'text', required: true, source: 'worker' },
-        { key: 'companyName', label: '受入企業名', type: 'text', required: true, source: 'company' },
-        { key: 'startDate', label: '支援開始日', type: 'date', required: true, source: 'custom' },
+        { key: 'workerName', label: '外国人氏名', type: 'text', required: true },
+        { key: 'companyName', label: '受入企業名', type: 'text', required: true },
+        { key: 'startDate', label: '支援開始日', type: 'date', required: true },
+        { key: 'items', label: '支援項目', type: 'array', required: true },
       ],
+      requiredFields: ['workerName', 'companyName', 'startDate'],
       status: 'active',
       isLegalDocument: true,
       createdById: admin.id,
