@@ -14,6 +14,7 @@ import { interviewRoutes } from './routes/interviews.js';
 import { consultationRoutes } from './routes/consultations.js';
 import { documentRoutes } from './routes/documents.js';
 import { auditRoutes } from './routes/audit.js';
+import { supportTaskRoutes } from './routes/support-tasks.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { prisma } from './lib/prisma.js';
 
@@ -96,6 +97,9 @@ async function buildServer() {
   await fastify.register(consultationRoutes, { prefix: '/api/consultations' });
   await fastify.register(documentRoutes, { prefix: '/api/documents' });
   await fastify.register(auditRoutes, { prefix: '/api/audit' });
+
+  // V2 Routes (UseCase-based)
+  await fastify.register(supportTaskRoutes, { prefix: '/api/v2' });
 
   return fastify;
 }

@@ -15,6 +15,7 @@ export type ErrorCode =
   | 'VALIDATION_FAILED'
   | 'VALIDATION_REQUIRED_FIELD'
   | 'VALIDATION_INVALID_FORMAT'
+  | 'VALIDATION_INVALID_INPUT'
   | 'VALIDATION_OUT_OF_RANGE'
   // リソース
   | 'RESOURCE_NOT_FOUND'
@@ -68,6 +69,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   VALIDATION_FAILED: 'error.validation.failed',
   VALIDATION_REQUIRED_FIELD: 'error.validation.required_field',
   VALIDATION_INVALID_FORMAT: 'error.validation.invalid_format',
+  VALIDATION_INVALID_INPUT: 'error.validation.invalid_input',
   VALIDATION_OUT_OF_RANGE: 'error.validation.out_of_range',
   RESOURCE_NOT_FOUND: 'error.resource.not_found',
   RESOURCE_ALREADY_EXISTS: 'error.resource.already_exists',
@@ -97,6 +99,7 @@ export const ERROR_HTTP_STATUS: Record<ErrorCode, number> = {
   VALIDATION_FAILED: 400,
   VALIDATION_REQUIRED_FIELD: 400,
   VALIDATION_INVALID_FORMAT: 400,
+  VALIDATION_INVALID_INPUT: 400,
   VALIDATION_OUT_OF_RANGE: 400,
   RESOURCE_NOT_FOUND: 404,
   RESOURCE_ALREADY_EXISTS: 409,

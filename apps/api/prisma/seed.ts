@@ -340,106 +340,118 @@ async function main() {
 
   console.log('✅ Created employment contract');
 
-  // Create support plan template
+  // Create support plan template with 10 support items (支援10項目)
   const template = await prisma.supportPlanTemplate.create({
     data: {
       tenantId: tenant.id,
       name: '標準支援計画テンプレート',
       description: '特定技能1号向け標準支援計画',
+      language: 'ja',
       isDefault: true,
+      isActive: true,
       status: 'active',
       items: {
         create: [
           {
             itemNumber: 1,
-            category: 'pre_entry',
+            type: 'pre_entry_guidance',
             title: '事前ガイダンス',
             titleTranslations: { en: 'Pre-entry Guidance', vi: 'Hướng dẫn trước khi nhập cảnh' },
-            description: '入国前に必要な情報を提供',
+            description: '入国前に必要な情報を提供（労働条件、活動内容、入国手続等）',
             descriptionTranslations: {},
+            defaultDueDays: -7, // 入国7日前
             requiresConsent: true,
             frequency: 'once',
           },
           {
             itemNumber: 2,
-            category: 'arrival',
+            type: 'airport_pickup',
             title: '出入国時の送迎',
             titleTranslations: { en: 'Airport Pickup/Dropoff', vi: 'Đón/tiễn tại sân bay' },
-            description: '空港等への送迎を実施',
+            description: '空港等と事業所または住居への送迎を実施',
             descriptionTranslations: {},
+            defaultDueDays: 0, // 入国日
             frequency: 'once',
           },
           {
             itemNumber: 3,
-            category: 'living',
-            title: '住居確保・生活必需品',
-            titleTranslations: { en: 'Housing and Necessities', vi: 'Nhà ở và đồ dùng thiết yếu' },
-            description: '住居の確保と生活に必要な物品の準備を支援',
+            type: 'housing_support',
+            title: '住居確保・生活に必要な契約支援',
+            titleTranslations: { en: 'Housing and Contract Support', vi: 'Hỗ trợ nhà ở và hợp đồng' },
+            description: '住居の確保、銀行口座開設、携帯電話契約等の支援',
             descriptionTranslations: {},
+            defaultDueDays: 7, // 入国後7日以内
             frequency: 'once',
           },
           {
             itemNumber: 4,
-            category: 'living',
+            type: 'life_orientation',
             title: '生活オリエンテーション',
             titleTranslations: { en: 'Life Orientation', vi: 'Hướng dẫn cuộc sống' },
-            description: '日本での生活に必要な情報を提供',
+            description: '日本での生活ルール、交通ルール、ゴミ出し等の説明',
             descriptionTranslations: {},
+            defaultDueDays: 14, // 入国後2週間以内
             requiresConsent: true,
             frequency: 'once',
           },
           {
             itemNumber: 5,
-            category: 'living',
-            title: '公的手続への同行',
-            titleTranslations: { en: 'Official Procedures Assistance', vi: 'Hỗ trợ thủ tục hành chính' },
-            description: '市区町村等への届出に同行',
+            type: 'official_procedures',
+            title: '公的手続等への同行',
+            titleTranslations: { en: 'Official Procedures Support', vi: 'Hỗ trợ thủ tục hành chính' },
+            description: '住民登録、社会保険、税金等の届出への同行',
             descriptionTranslations: {},
+            defaultDueDays: 14, // 入国後2週間以内
             frequency: 'as_needed',
           },
           {
             itemNumber: 6,
-            category: 'japanese_learning',
-            title: '日本語学習機会の提供',
+            type: 'japanese_learning',
+            title: '日本語学習の機会の提供',
             titleTranslations: { en: 'Japanese Language Learning', vi: 'Học tiếng Nhật' },
-            description: '日本語学習の機会を提供',
+            description: '日本語教室や学習教材の情報提供',
             descriptionTranslations: {},
+            defaultDueDays: 30, // 入国後1ヶ月以内
             frequency: 'as_needed',
           },
           {
             itemNumber: 7,
-            category: 'consultation',
-            title: '相談・苦情対応',
+            type: 'consultation_complaints',
+            title: '相談・苦情への対応',
             titleTranslations: { en: 'Consultation and Complaints', vi: 'Tư vấn và giải quyết khiếu nại' },
-            description: '相談・苦情に対応',
+            description: '相談窓口の案内と適切な対応体制の確保',
             descriptionTranslations: {},
+            defaultDueDays: 7, // 入国後7日以内に案内
             frequency: 'as_needed',
           },
           {
             itemNumber: 8,
-            category: 'community',
+            type: 'japanese_community',
             title: '日本人との交流促進',
             titleTranslations: { en: 'Community Integration', vi: 'Hội nhập cộng đồng' },
-            description: '地域住民との交流機会を提供',
+            description: '地域の行事、ボランティア活動等への参加機会の提供',
             descriptionTranslations: {},
+            defaultDueDays: 90, // 入国後3ヶ月以内
             frequency: 'quarterly',
           },
           {
             itemNumber: 9,
-            category: 'career',
-            title: '転職支援',
+            type: 'job_change_support',
+            title: '転職支援（人員整理等の場合）',
             titleTranslations: { en: 'Job Change Support', vi: 'Hỗ trợ đổi việc' },
-            description: '会社都合離職の場合の転職支援',
+            description: '非自発的離職の場合の転職支援、推薦状作成等',
             descriptionTranslations: {},
+            defaultDueDays: null, // 発生時
             frequency: 'as_needed',
           },
           {
             itemNumber: 10,
-            category: 'regular_interview',
-            title: '定期面談',
+            type: 'regular_interviews',
+            title: '定期的な面談の実施',
             titleTranslations: { en: 'Regular Interviews', vi: 'Phỏng vấn định kỳ' },
-            description: '3か月に1回以上の定期面談を実施',
+            description: '3か月に1回以上の定期面談、監督者との面談',
             descriptionTranslations: {},
+            defaultDueDays: 90, // 初回は入国後3ヶ月
             frequency: 'quarterly',
           },
         ],

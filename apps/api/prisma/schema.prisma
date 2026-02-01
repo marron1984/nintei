@@ -121,7 +121,7 @@ model User {
   approvedDocuments        DocumentInstance[]       @relation("DocumentApprover")
   createdSupportPlans      SupportPlan[]            @relation("SupportPlanCreator")
   approvedSupportPlans     SupportPlan[]            @relation("SupportPlanApprover")
-  uploadedEvidence         Evidence[]
+  createdEvidence          Evidence[]
 
   @@index([tenantId])
   @@index([email])
@@ -349,7 +349,9 @@ model SupportPlanTemplate {
   tenantId    String
   name        String
   description String?
+  language    String   @default("ja") // ja, en, vi, zh, etc.
   isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(false) // Whether template can be used
   status      String   @default("draft") // draft, active, archived
   version     Int      @default(1)
   createdAt   DateTime @default(now())
@@ -366,12 +368,13 @@ model SupportPlanItemTemplate {
   id                      String   @id @default(cuid())
   templateId              String
   itemNumber              Int      // 1-10
-  category                String   // pre_entry, arrival, living, japanese_learning, consultation, community, career, regular_interview
+  type                    String   // pre_entry_guidance, airport_pickup, housing_support, life_orientation, official_procedures, japanese_learning, consultation_complaints, japanese_community, job_change_support, regular_interviews
   title                   String
   titleTranslations       Json     // { "en": "...", "vi": "..." }
   description             String
   descriptionTranslations Json
   defaultMethod           String?
+  defaultDueDays          Int?     // Days from plan start date
   requiredDocuments       String[]
   requiresConsent         Boolean  @default(false)
   frequency               String?  // once, monthly, quarterly, yearly, as_needed
@@ -389,7 +392,7 @@ model SupportPlan {
   tenantId        String
   foreignWorkerId String
   templateId      String?
-  status          String    @default("draft") // draft, pending_approval, active, completed, cancelled
+  status          String    @default("draft") // draft, active, archived
   startDate       DateTime
   endDate         DateTime?
   createdBy       String
@@ -404,6 +407,7 @@ model SupportPlan {
   creator       User                 @relation("SupportPlanCreator", fields: [createdBy], references: [id])
   approver      User?                @relation("SupportPlanApprover", fields: [approvedBy], references: [id])
   items         SupportPlanItem[]
+  tasks         SupportTask[]
 
   @@index([tenantId])
   @@index([foreignWorkerId])
@@ -414,7 +418,7 @@ model SupportPlanItem {
   id          String   @id @default(cuid())
   planId      String
   itemNumber  Int
-  category    String
+  type        String   // pre_entry_guidance, airport_pickup, housing_support, life_orientation, official_procedures, japanese_learning, consultation_complaints, japanese_community, job_change_support, regular_interviews
   title       String
   description String
   method      String?
@@ -432,16 +436,19 @@ model SupportPlanItem {
 
 model SupportTask {
   id                String    @id @default(cuid())
-  planItemId        String
+  tenantId          String
+  supportPlanId     String
+  planItemId        String?
   foreignWorkerId   String
-  assigneeId        String
+  assigneeId        String?   // Nullable for unassigned tasks
   createdById       String
+  type              String    // pre_entry_guidance, airport_pickup, housing_support, life_orientation, official_procedures, japanese_learning, consultation_complaints, japanese_community, job_change_support, regular_interviews
   title             String
   description       String?
-  dueDate           DateTime
+  dueDate           DateTime? // Nullable
   completedAt       DateTime?
   method            String?
-  status            String    @default("pending") // pending, in_progress, completed, cancelled, overdue
+  status            String    @default("todo") // todo, in_progress, done
   priority          String    @default("medium") // low, medium, high, urgent
   // 本人同意
   consentRequired   Boolean   @default(false)
@@ -450,12 +457,15 @@ model SupportTask {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  planItem      SupportPlanItem @relation(fields: [planItemId], references: [id], onDelete: Cascade)
-  foreignWorker ForeignWorker   @relation(fields: [foreignWorkerId], references: [id])
-  assignee      User            @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  creator       User            @relation("TaskCreator", fields: [createdById], references: [id])
+  supportPlan   SupportPlan      @relation(fields: [supportPlanId], references: [id], onDelete: Cascade)
+  planItem      SupportPlanItem? @relation(fields: [planItemId], references: [id], onDelete: SetNull)
+  foreignWorker ForeignWorker    @relation(fields: [foreignWorkerId], references: [id])
+  assignee      User?            @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator       User             @relation("TaskCreator", fields: [createdById], references: [id])
   evidence      Evidence[]
 
+  @@index([tenantId])
+  @@index([supportPlanId])
   @@index([assigneeId])
   @@index([dueDate])
   @@index([status])
@@ -465,31 +475,38 @@ model SupportTask {
 // ==================== 証跡（添付ファイル）====================
 
 model Evidence {
-  id            String   @id @default(cuid())
-  taskId        String?
-  interviewId   String?
-  consultationId String?
-  documentId    String?
-  // ファイル情報
-  fileName      String
-  fileType      String   // image, pdf, document, other
-  mimeType      String
-  fileSize      Int      // bytes
-  fileUrl       String
+  id              String   @id @default(cuid())
+  tenantId        String
+  supportTaskId   String?
+  interviewId     String?
+  consultationId  String?
+  documentId      String?
+  // 種別
+  kind            String   // file, note, url
+  // ノート（kind=note の場合）
+  note            String?
+  // ファイル情報（kind=file の場合）
+  fileKey         String?  // S3 key
+  originalFilename String?
+  mimeType        String?
+  fileSize        Int?     // bytes
+  fileUrl         String?
+  // URL（kind=url の場合）
+  url             String?
   // メタデータ
-  description   String?
-  category      String?  // consent, signature, photo, record, other
-  uploadedById  String
-  uploadedAt    DateTime @default(now())
-  createdAt     DateTime @default(now())
+  description     String?
+  category        String?  // consent, signature, photo, record, other
+  createdByUserId String
+  createdAt       DateTime @default(now())
 
-  task         SupportTask?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  supportTask  SupportTask?      @relation(fields: [supportTaskId], references: [id], onDelete: SetNull)
   interview    Interview?        @relation(fields: [interviewId], references: [id], onDelete: SetNull)
   consultation Consultation?     @relation(fields: [consultationId], references: [id], onDelete: SetNull)
   document     DocumentInstance? @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  uploadedBy   User              @relation(fields: [uploadedById], references: [id])
+  createdBy    User              @relation(fields: [createdByUserId], references: [id])
 
-  @@index([taskId])
+  @@index([tenantId])
+  @@index([supportTaskId])
   @@index([interviewId])
   @@index([consultationId])
   @@map("evidence")
