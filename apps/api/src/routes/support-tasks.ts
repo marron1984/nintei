@@ -1,9 +1,15 @@
 /**
  * SupportTasks Routes (Vertical Slice API)
- * 3つのエンドポイントを実装:
+ *
+ * POST:
  * 1. POST /support-plans - テンプレートから支援計画を作成
  * 2. POST /support-tasks/:id/complete - タスクを完了にする
  * 3. POST /support-tasks/:id/evidences - エビデンスを追加
+ *
+ * GET:
+ * 4. GET /workers/:workerId/support-plan - 外国人の支援計画を取得
+ * 5. GET /support-plans/:planId/tasks - 支援計画のタスク一覧を取得
+ * 6. GET /support-tasks/:taskId/evidences - タスクのエビデンス一覧を取得
  */
 
 import type { FastifyInstance } from 'fastify';
@@ -194,6 +200,109 @@ export async function supportTaskRoutes(fastify: FastifyInstance) {
       return {
         success: true,
         data: task,
+        requestId: crypto.randomUUID(),
+      };
+    }
+  );
+
+  // ==================== GET Endpoints ====================
+
+  /**
+   * GET /api/v2/workers/:workerId/support-plan
+   * 外国人の支援計画を取得（アクティブなものを返す、無ければnull）
+   */
+  fastify.get<{ Params: { workerId: string } }>(
+    '/workers/:workerId/support-plan',
+    { preHandler: [authenticate, requirePermission('support_plan:read')] },
+    async (request) => {
+      const tenantId = requireTenant(request);
+      const { workerId } = request.params;
+
+      const result = await useCase.getSupportPlanByWorkerId({
+        tenantId,
+        foreignWorkerId: workerId,
+      });
+
+      return {
+        success: true,
+        data: {
+          supportPlan: result.supportPlan,
+          progress: result.progress,
+        },
+        requestId: crypto.randomUUID(),
+      };
+    }
+  );
+
+  /**
+   * GET /api/v2/support-plans/:planId/tasks
+   * 支援計画のタスク一覧を取得
+   */
+  fastify.get<{ Params: { planId: string } }>(
+    '/support-plans/:planId/tasks',
+    { preHandler: [authenticate, requirePermission('task:read')] },
+    async (request) => {
+      const tenantId = requireTenant(request);
+      const { planId } = request.params;
+
+      const result = await useCase.getTasksByPlanId({
+        tenantId,
+        planId,
+      });
+
+      // タスクにevidencesCountを追加
+      const tasksWithCount = result.tasks.map((task) => ({
+        id: task.id,
+        type: task.type,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        dueDate: task.dueDate,
+        completedAt: task.completedAt,
+        assigneeId: task.assigneeId,
+        evidencesCount: task.evidence.length,
+      }));
+
+      return {
+        success: true,
+        data: { tasks: tasksWithCount },
+        requestId: crypto.randomUUID(),
+      };
+    }
+  );
+
+  /**
+   * GET /api/v2/support-tasks/:taskId/evidences
+   * タスクのエビデンス一覧を取得
+   */
+  fastify.get<{ Params: { taskId: string } }>(
+    '/support-tasks/:taskId/evidences',
+    { preHandler: [authenticate, requirePermission('task:read')] },
+    async (request) => {
+      const tenantId = requireTenant(request);
+      const { taskId } = request.params;
+
+      const result = await useCase.getEvidencesByTaskId({
+        tenantId,
+        taskId,
+      });
+
+      // 必要なフィールドのみ返す
+      const evidences = result.evidences.map((e) => ({
+        id: e.id,
+        kind: e.kind,
+        note: e.note,
+        fileKey: e.fileKey,
+        originalFilename: e.originalFilename,
+        url: e.url,
+        description: e.description,
+        createdAt: e.createdAt,
+        createdByUserId: e.createdByUserId,
+      }));
+
+      return {
+        success: true,
+        data: { evidences },
         requestId: crypto.randomUUID(),
       };
     }

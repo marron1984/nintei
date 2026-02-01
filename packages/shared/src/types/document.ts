@@ -2,6 +2,8 @@
  * 書類生成・管理関連の型定義
  */
 
+import type { TemplateStatus } from './support-plan.js';
+
 export interface DocumentTemplate {
   id: string;
   tenantId: string;
@@ -37,7 +39,6 @@ export type DocumentCategory =
   | 'other';
 
 export type DocumentType = 'pdf' | 'excel' | 'word';
-export type TemplateStatus = 'draft' | 'active' | 'archived';
 
 export interface TemplateVariable {
   key: string;

@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   ArrowLeft,
   CheckCircle2,
   Circle,
   Clock,
   FileText,
-  MessageSquare,
   Plus,
   Upload,
+  MessageSquare,
+  Loader2,
 } from 'lucide-react';
 
 // ==================== Types ====================
@@ -24,30 +24,49 @@ interface SupportTask {
   status: 'todo' | 'in_progress' | 'done';
   dueDate: string | null;
   completedAt: string | null;
-  evidenceCount: number;
-}
-
-interface SupportPlanItem {
-  id: string;
-  itemNumber: number;
-  type: string;
-  title: string;
-  description: string;
-  status: string;
-  tasks: SupportTask[];
+  evidencesCount: number;
+  assigneeId: string | null;
 }
 
 interface SupportPlan {
   id: string;
+  tenantId: string;
+  foreignWorkerId: string;
+  templateId: string | null;
   status: string;
   startDate: string;
   endDate: string | null;
-  foreignWorker: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-  items: SupportPlanItem[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Progress {
+  total: number;
+  done: number;
+  percent: number;
+}
+
+// ==================== API Client ====================
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Request failed' }));
+    throw new Error(error.message || `HTTP ${res.status}`);
+  }
+
+  return res.json();
 }
 
 // ==================== Constants ====================
@@ -65,13 +84,13 @@ const TASK_TYPE_LABELS: Record<string, { ja: string; icon: string }> = {
   regular_interviews: { ja: '定期的な面談', icon: '🔟' },
 };
 
-const STATUS_STYLES = {
+const STATUS_STYLES: Record<string, string> = {
   todo: 'bg-gray-100 text-gray-700',
   in_progress: 'bg-blue-100 text-blue-700',
   done: 'bg-green-100 text-green-700',
 };
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<string, string> = {
   todo: '未着手',
   in_progress: '進行中',
   done: '完了',
@@ -82,261 +101,161 @@ const STATUS_LABELS = {
 export default function ForeignWorkerSupportPlanPage() {
   const params = useParams();
   const router = useRouter();
+  const workerId = params.id as string;
+
   const [plan, setPlan] = useState<SupportPlan | null>(null);
+  const [tasks, setTasks] = useState<SupportTask[]>([]);
+  const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const [completingTask, setCompletingTask] = useState<string | null>(null);
   const [showEvidenceModal, setShowEvidenceModal] = useState<string | null>(null);
   const [evidenceNote, setEvidenceNote] = useState('');
+  const [addingEvidence, setAddingEvidence] = useState(false);
+
+  // Fetch support plan
+  const fetchPlan = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await apiRequest<{
+        success: boolean;
+        data: { supportPlan: SupportPlan | null; progress: Progress | null };
+      }>(`/api/v2/workers/${workerId}/support-plan`);
+
+      if (response.data.supportPlan) {
+        setPlan(response.data.supportPlan);
+        setProgress(response.data.progress);
+
+        // Fetch tasks
+        const tasksResponse = await apiRequest<{
+          success: boolean;
+          data: { tasks: SupportTask[] };
+        }>(`/api/v2/support-plans/${response.data.supportPlan.id}/tasks`);
+
+        setTasks(tasksResponse.data.tasks);
+      } else {
+        setPlan(null);
+        setTasks([]);
+        setProgress(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'データの取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  }, [workerId]);
 
   useEffect(() => {
-    const fetchPlan = async () => {
-      try {
-        // In real app, fetch from API
-        // const response = await api.get(`/api/v2/support-plans?foreignWorkerId=${params.id}`);
-        // setPlan(response.data);
-
-        // Mock data for demonstration
-        setPlan({
-          id: 'plan-1',
-          status: 'active',
-          startDate: '2024-07-01',
-          endDate: null,
-          foreignWorker: {
-            id: params.id as string,
-            firstName: 'Van A',
-            lastName: 'Nguyen',
-          },
-          items: [
-            {
-              id: 'item-1',
-              itemNumber: 1,
-              type: 'pre_entry_guidance',
-              title: '事前ガイダンス',
-              description: '入国前に必要な情報を提供',
-              status: 'completed',
-              tasks: [
-                {
-                  id: 'task-1',
-                  type: 'pre_entry_guidance',
-                  title: '事前ガイダンス実施',
-                  description: '入国前のオリエンテーション',
-                  status: 'done',
-                  dueDate: '2024-06-24',
-                  completedAt: '2024-06-23',
-                  evidenceCount: 2,
-                },
-              ],
-            },
-            {
-              id: 'item-2',
-              itemNumber: 2,
-              type: 'airport_pickup',
-              title: '出入国時の送迎',
-              description: '空港等への送迎',
-              status: 'completed',
-              tasks: [
-                {
-                  id: 'task-2',
-                  type: 'airport_pickup',
-                  title: '空港送迎',
-                  description: '成田空港にて出迎え',
-                  status: 'done',
-                  dueDate: '2024-07-01',
-                  completedAt: '2024-07-01',
-                  evidenceCount: 1,
-                },
-              ],
-            },
-            {
-              id: 'item-3',
-              itemNumber: 3,
-              type: 'housing_support',
-              title: '住居確保・生活契約支援',
-              description: '住居の確保と生活必需品契約の支援',
-              status: 'in_progress',
-              tasks: [
-                {
-                  id: 'task-3',
-                  type: 'housing_support',
-                  title: '住居契約支援',
-                  description: '賃貸契約への同行・支援',
-                  status: 'in_progress',
-                  dueDate: '2024-07-08',
-                  completedAt: null,
-                  evidenceCount: 0,
-                },
-              ],
-            },
-            {
-              id: 'item-4',
-              itemNumber: 4,
-              type: 'life_orientation',
-              title: '生活オリエンテーション',
-              description: '生活ルールや習慣の説明',
-              status: 'pending',
-              tasks: [
-                {
-                  id: 'task-4',
-                  type: 'life_orientation',
-                  title: '生活オリエンテーション実施',
-                  description: 'ゴミ出しルール、交通ルール等の説明',
-                  status: 'todo',
-                  dueDate: '2024-07-15',
-                  completedAt: null,
-                  evidenceCount: 0,
-                },
-              ],
-            },
-            {
-              id: 'item-5',
-              itemNumber: 5,
-              type: 'official_procedures',
-              title: '公的手続等への同行',
-              description: '市区町村役場等への届出への同行',
-              status: 'pending',
-              tasks: [
-                {
-                  id: 'task-5',
-                  type: 'official_procedures',
-                  title: '住民登録同行',
-                  description: '区役所での住民登録手続きへの同行',
-                  status: 'todo',
-                  dueDate: '2024-07-10',
-                  completedAt: null,
-                  evidenceCount: 0,
-                },
-              ],
-            },
-            {
-              id: 'item-6',
-              itemNumber: 6,
-              type: 'japanese_learning',
-              title: '日本語学習の機会の提供',
-              description: '日本語教室等の情報提供',
-              status: 'pending',
-              tasks: [],
-            },
-            {
-              id: 'item-7',
-              itemNumber: 7,
-              type: 'consultation_complaints',
-              title: '相談・苦情への対応',
-              description: '相談窓口の案内と対応体制の説明',
-              status: 'pending',
-              tasks: [],
-            },
-            {
-              id: 'item-8',
-              itemNumber: 8,
-              type: 'japanese_community',
-              title: '日本人との交流促進',
-              description: '地域コミュニティ活動の紹介',
-              status: 'pending',
-              tasks: [],
-            },
-            {
-              id: 'item-9',
-              itemNumber: 9,
-              type: 'job_change_support',
-              title: '転職支援',
-              description: '非自発的離職時の転職支援',
-              status: 'pending',
-              tasks: [],
-            },
-            {
-              id: 'item-10',
-              itemNumber: 10,
-              type: 'regular_interviews',
-              title: '定期的な面談',
-              description: '3か月ごとの定期面談',
-              status: 'pending',
-              tasks: [],
-            },
-          ],
-        });
-        setLoading(false);
-      } catch (err) {
-        setError('データの取得に失敗しました');
-        setLoading(false);
-      }
-    };
-
     fetchPlan();
-  }, [params.id]);
+  }, [fetchPlan]);
 
-  const handleCompleteTask = async (taskId: string) => {
-    setCompletingTask(taskId);
+  // Create support plan
+  const handleCreatePlan = async () => {
     try {
-      // In real app, call API
-      // await api.post(`/api/v2/support-tasks/${taskId}/complete`);
+      setCreating(true);
+      setError(null);
 
-      // Update local state
-      setPlan((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          items: prev.items.map((item) => ({
-            ...item,
-            tasks: item.tasks.map((task) =>
-              task.id === taskId
-                ? { ...task, status: 'done' as const, completedAt: new Date().toISOString() }
-                : task
-            ),
-          })),
-        };
+      await apiRequest('/api/v2/support-plans', {
+        method: 'POST',
+        body: JSON.stringify({
+          foreignWorkerId: workerId,
+          startDate: new Date().toISOString(),
+        }),
       });
+
+      // Refetch data
+      await fetchPlan();
     } catch (err) {
-      alert('タスクの完了に失敗しました');
+      setError(err instanceof Error ? err.message : '支援計画の作成に失敗しました');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // Complete task
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      setCompletingTask(taskId);
+
+      await apiRequest(`/api/v2/support-tasks/${taskId}/complete`, {
+        method: 'POST',
+      });
+
+      // Refetch tasks
+      if (plan) {
+        const tasksResponse = await apiRequest<{
+          success: boolean;
+          data: { tasks: SupportTask[] };
+        }>(`/api/v2/support-plans/${plan.id}/tasks`);
+        setTasks(tasksResponse.data.tasks);
+
+        // Update progress
+        const doneCount = tasksResponse.data.tasks.filter((t) => t.status === 'done').length;
+        const total = tasksResponse.data.tasks.length;
+        setProgress({
+          total,
+          done: doneCount,
+          percent: total > 0 ? Math.round((doneCount / total) * 100) : 0,
+        });
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'タスクの完了に失敗しました');
     } finally {
       setCompletingTask(null);
     }
   };
 
+  // Add evidence
   const handleAddEvidence = async (taskId: string) => {
     if (!evidenceNote.trim()) return;
 
     try {
-      // In real app, call API
-      // await api.post(`/api/v2/support-tasks/${taskId}/evidences`, {
-      //   kind: 'note',
-      //   note: evidenceNote,
-      // });
+      setAddingEvidence(true);
 
-      // Update local state
-      setPlan((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          items: prev.items.map((item) => ({
-            ...item,
-            tasks: item.tasks.map((task) =>
-              task.id === taskId ? { ...task, evidenceCount: task.evidenceCount + 1 } : task
-            ),
-          })),
-        };
+      await apiRequest(`/api/v2/support-tasks/${taskId}/evidences`, {
+        method: 'POST',
+        body: JSON.stringify({
+          kind: 'note',
+          note: evidenceNote,
+        }),
       });
+
+      // Refetch tasks to update evidence count
+      if (plan) {
+        const tasksResponse = await apiRequest<{
+          success: boolean;
+          data: { tasks: SupportTask[] };
+        }>(`/api/v2/support-plans/${plan.id}/tasks`);
+        setTasks(tasksResponse.data.tasks);
+      }
 
       setEvidenceNote('');
       setShowEvidenceModal(null);
     } catch (err) {
-      alert('エビデンスの追加に失敗しました');
+      alert(err instanceof Error ? err.message : 'エビデンスの追加に失敗しました');
+    } finally {
+      setAddingEvidence(false);
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-gray-500">読み込み中...</div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
       </div>
     );
   }
 
-  if (error || !plan) {
+  // Error state
+  if (error && !plan) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500 mb-4">{error || '支援計画が見つかりません'}</p>
+          <p className="text-red-500 mb-4">{error}</p>
           <button onClick={() => router.back()} className="btn btn-secondary">
             戻る
           </button>
@@ -345,11 +264,51 @@ export default function ForeignWorkerSupportPlanPage() {
     );
   }
 
-  const completedCount = plan.items.filter((item) =>
-    item.tasks.every((task) => task.status === 'done')
-  ).length;
-  const progressPercent = Math.round((completedCount / 10) * 100);
+  // No plan state - show create button
+  if (!plan) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm">
+          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-4">
+              <button onClick={() => router.back()} className="rounded-lg p-2 hover:bg-gray-100">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900">支援計画</h1>
+            </div>
+          </div>
+        </header>
 
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+              支援計画がまだ作成されていません
+            </h2>
+            <p className="text-gray-500 mb-6">
+              テンプレートから10項目の支援計画を作成します
+            </p>
+            <button
+              onClick={handleCreatePlan}
+              disabled={creating}
+              className="btn btn-primary"
+            >
+              {creating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  作成中...
+                </>
+              ) : (
+                '支援計画を作成'
+              )}
+            </button>
+            {error && <p className="mt-4 text-red-500">{error}</p>}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Plan exists - show tasks
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -362,12 +321,14 @@ export default function ForeignWorkerSupportPlanPage() {
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">支援計画</h1>
               <p className="text-sm text-gray-500">
-                {plan.foreignWorker.lastName} {plan.foreignWorker.firstName}
+                開始日: {new Date(plan.startDate).toLocaleDateString('ja-JP')}
               </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500">進捗</p>
-              <p className="text-2xl font-bold text-primary-600">{progressPercent}%</p>
+              <p className="text-2xl font-bold text-primary-600">
+                {progress?.percent ?? 0}%
+              </p>
             </div>
           </div>
         </div>
@@ -379,24 +340,24 @@ export default function ForeignWorkerSupportPlanPage() {
           <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
             <div
               className="h-full bg-primary-500 transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
+              style={{ width: `${progress?.percent ?? 0}%` }}
             />
           </div>
           <p className="mt-2 text-sm text-gray-500">
-            10項目中 {completedCount}項目 完了
+            {progress?.total ?? 0}項目中 {progress?.done ?? 0}項目 完了
           </p>
         </div>
 
-        {/* Support Plan Items */}
+        {/* Tasks List */}
         <div className="space-y-4">
-          {plan.items.map((item) => {
-            const typeInfo = TASK_TYPE_LABELS[item.type] || { ja: item.title, icon: '📋' };
-            const isCompleted = item.tasks.length > 0 && item.tasks.every((t) => t.status === 'done');
-            const isInProgress = item.tasks.some((t) => t.status === 'in_progress');
+          {tasks.map((task) => {
+            const typeInfo = TASK_TYPE_LABELS[task.type] || { ja: task.title, icon: '📋' };
+            const isCompleted = task.status === 'done';
+            const isInProgress = task.status === 'in_progress';
 
             return (
               <div
-                key={item.id}
+                key={task.id}
                 className={`card ${isCompleted ? 'border-green-200 bg-green-50' : ''}`}
               >
                 <div className="flex items-start gap-4">
@@ -407,65 +368,59 @@ export default function ForeignWorkerSupportPlanPage() {
                       {isCompleted && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                       {isInProgress && <Clock className="h-5 w-5 text-blue-500" />}
                     </div>
-                    <p className="text-sm text-gray-500">{item.description}</p>
+                    {task.description && (
+                      <p className="text-sm text-gray-500">{task.description}</p>
+                    )}
 
-                    {/* Tasks */}
-                    {item.tasks.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        {item.tasks.map((task) => (
-                          <div
-                            key={task.id}
-                            className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm"
-                          >
-                            {task.status === 'done' ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <Circle className="h-5 w-5 text-gray-300" />
-                            )}
-                            <div className="flex-1">
-                              <p className="font-medium">{task.title}</p>
-                              {task.dueDate && (
-                                <p className="text-xs text-gray-500">
-                                  期限: {task.dueDate}
-                                  {task.completedAt && ` / 完了: ${task.completedAt.split('T')[0]}`}
-                                </p>
-                              )}
-                            </div>
-                            <span className={`badge ${STATUS_STYLES[task.status]}`}>
-                              {STATUS_LABELS[task.status]}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              {task.evidenceCount > 0 && (
-                                <span className="flex items-center gap-1 text-sm text-gray-500">
-                                  <FileText className="h-4 w-4" />
-                                  {task.evidenceCount}
-                                </span>
-                              )}
-                              <button
-                                onClick={() => setShowEvidenceModal(task.id)}
-                                className="btn btn-ghost p-1"
-                                title="エビデンスを追加"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </button>
-                              {task.status !== 'done' && (
-                                <button
-                                  onClick={() => handleCompleteTask(task.id)}
-                                  disabled={completingTask === task.id}
-                                  className="btn btn-primary btn-sm"
-                                >
-                                  {completingTask === task.id ? '処理中...' : '完了'}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                    {/* Task Details */}
+                    <div className="mt-3 flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm">
+                      {isCompleted ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-gray-300" />
+                      )}
+                      <div className="flex-1">
+                        <p className="font-medium">{task.title}</p>
+                        {task.dueDate && (
+                          <p className="text-xs text-gray-500">
+                            期限: {new Date(task.dueDate).toLocaleDateString('ja-JP')}
+                            {task.completedAt &&
+                              ` / 完了: ${new Date(task.completedAt).toLocaleDateString('ja-JP')}`}
+                          </p>
+                        )}
                       </div>
-                    )}
-
-                    {item.tasks.length === 0 && (
-                      <p className="mt-2 text-sm text-gray-400">タスクなし</p>
-                    )}
+                      <span className={`badge ${STATUS_STYLES[task.status]}`}>
+                        {STATUS_LABELS[task.status]}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {task.evidencesCount > 0 && (
+                          <span className="flex items-center gap-1 text-sm text-gray-500">
+                            <FileText className="h-4 w-4" />
+                            {task.evidencesCount}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => setShowEvidenceModal(task.id)}
+                          className="btn btn-ghost p-1"
+                          title="エビデンスを追加"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                        {!isCompleted && (
+                          <button
+                            onClick={() => handleCompleteTask(task.id)}
+                            disabled={completingTask === task.id}
+                            className="btn btn-primary btn-sm"
+                          >
+                            {completingTask === task.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              '完了'
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -491,11 +446,11 @@ export default function ForeignWorkerSupportPlanPage() {
                 />
               </div>
               <div className="flex gap-2">
-                <button className="btn btn-secondary flex-1">
+                <button className="btn btn-secondary flex-1" disabled>
                   <Upload className="mr-2 h-4 w-4" />
                   ファイル
                 </button>
-                <button className="btn btn-secondary flex-1">
+                <button className="btn btn-secondary flex-1" disabled>
                   <MessageSquare className="mr-2 h-4 w-4" />
                   URL
                 </button>
@@ -514,9 +469,13 @@ export default function ForeignWorkerSupportPlanPage() {
               <button
                 onClick={() => handleAddEvidence(showEvidenceModal)}
                 className="btn btn-primary"
-                disabled={!evidenceNote.trim()}
+                disabled={!evidenceNote.trim() || addingEvidence}
               >
-                追加
+                {addingEvidence ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  '追加'
+                )}
               </button>
             </div>
           </div>

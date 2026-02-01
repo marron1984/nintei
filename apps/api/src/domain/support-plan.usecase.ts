@@ -63,6 +63,40 @@ export interface AddEvidenceResult {
   task: SupportTaskEntity;
 }
 
+export interface GetSupportPlanInput {
+  tenantId: string;
+  foreignWorkerId: string;
+}
+
+export interface GetTasksInput {
+  tenantId: string;
+  planId: string;
+}
+
+export interface GetEvidencesInput {
+  tenantId: string;
+  taskId: string;
+}
+
+export interface SupportPlanProgress {
+  total: number;
+  done: number;
+  percent: number;
+}
+
+export interface GetSupportPlanResult {
+  supportPlan: SupportPlanEntity | null;
+  progress: SupportPlanProgress | null;
+}
+
+export interface GetTasksResult {
+  tasks: SupportTaskEntity[];
+}
+
+export interface GetEvidencesResult {
+  evidences: EvidenceEntity[];
+}
+
 // ==================== UseCase Class ====================
 
 export class SupportPlanUseCase {
@@ -263,5 +297,75 @@ export class SupportPlanUseCase {
       evidence,
       task: updatedTask!,
     };
+  }
+
+  // ==================== GET Methods ====================
+
+  /**
+   * 4. 外国人の支援計画を取得
+   * - アクティブな支援計画を返す（無ければnull）
+   * - 進捗情報（total/done/percent）を含む
+   */
+  async getSupportPlanByWorkerId(input: GetSupportPlanInput): Promise<GetSupportPlanResult> {
+    const { tenantId, foreignWorkerId } = input;
+
+    const supportPlan = await this.repository.findSupportPlanByForeignWorkerId(
+      foreignWorkerId,
+      tenantId
+    );
+
+    if (!supportPlan) {
+      return { supportPlan: null, progress: null };
+    }
+
+    // 進捗を計算
+    const total = supportPlan.tasks.length;
+    const done = supportPlan.tasks.filter((t) => t.status === 'done').length;
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    return {
+      supportPlan,
+      progress: { total, done, percent },
+    };
+  }
+
+  /**
+   * 5. 支援計画のタスク一覧を取得
+   * - itemNumber順でソート
+   */
+  async getTasksByPlanId(input: GetTasksInput): Promise<GetTasksResult> {
+    const { tenantId, planId } = input;
+
+    const plan = await this.repository.findSupportPlanById(planId, tenantId);
+    if (!plan) {
+      throw new ApplicationError('RESOURCE_NOT_FOUND', 'Support plan not found');
+    }
+
+    // タスクをitemNumber順（type順）でソート
+    const sortedTasks = [...plan.tasks].sort((a, b) => {
+      // SupportPlanItemのitemNumberでソート
+      const itemA = plan.items.find((i) => i.id === a.planItemId);
+      const itemB = plan.items.find((i) => i.id === b.planItemId);
+      return (itemA?.itemNumber ?? 0) - (itemB?.itemNumber ?? 0);
+    });
+
+    return { tasks: sortedTasks };
+  }
+
+  /**
+   * 6. タスクのエビデンス一覧を取得
+   */
+  async getEvidencesByTaskId(input: GetEvidencesInput): Promise<GetEvidencesResult> {
+    const { tenantId, taskId } = input;
+
+    // タスクの存在確認（tenant境界チェック）
+    const task = await this.repository.findTaskById(taskId, tenantId);
+    if (!task) {
+      throw new ApplicationError('RESOURCE_NOT_FOUND', 'Task not found');
+    }
+
+    const evidences = await this.repository.findEvidenceByTaskId(taskId);
+
+    return { evidences };
   }
 }
